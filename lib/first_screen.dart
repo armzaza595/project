@@ -5,8 +5,79 @@ import 'dart:ui';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:project/services/filestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: const FirstScreen(),
+    );
+  }
+}
+
+// ================= Firestore Service =================
+class FirestoreService {
+  final CollectionReference animeCollection = FirebaseFirestore.instance
+      .collection('animes');
+
+  Future<void> addAnime({
+    required String animeName,
+    required int animeChapter,
+    required int animeSeason,
+    required double animeScore,
+    required String animeImageUrl,
+  }) async {
+    await animeCollection.add({
+      'animeName': animeName,
+      'animeChapter': animeChapter,
+      'animeSeason': animeSeason,
+      'animeScore': animeScore,
+      'animeImageUrl': animeImageUrl,
+    });
+  }
+
+  Future<void> updateAnime({
+    required String animeID,
+    required String animeName,
+    required int animeChapter,
+    required int animeSeason,
+    required double animeScore,
+    required String animeImageUrl,
+  }) async {
+    await animeCollection.doc(animeID).update({
+      'animeName': animeName,
+      'animeChapter': animeChapter,
+      'animeSeason': animeSeason,
+      'animeScore': animeScore,
+      'animeImageUrl': animeImageUrl,
+    });
+  }
+
+  Future<void> deleteAnime(String animeID) async {
+    await animeCollection.doc(animeID).delete();
+  }
+
+  Stream<QuerySnapshot> getAnimes() {
+    return animeCollection.snapshots();
+  }
+
+  Future<Map<String, dynamic>> getAnimeById(String animeID) async {
+    DocumentSnapshot doc = await animeCollection.doc(animeID).get();
+    return doc.data() as Map<String, dynamic>;
+  }
+}
+
+// ================= First Screen =================
 class FirstScreen extends StatefulWidget {
   const FirstScreen({super.key});
 
@@ -24,7 +95,7 @@ class _FirstScreenState extends State<FirstScreen> {
   void checkInternetConnection() async {
     var connectivityResult = await Connectivity().checkConnectivity();
 
-    if (connectivityResult.contains(ConnectivityResult.none)) {
+    if (connectivityResult == ConnectivityResult.none) {
       _showAlertDialog(
         context,
         "No Internet",
@@ -41,7 +112,7 @@ class _FirstScreenState extends State<FirstScreen> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF1D1E33), Color(0xFF2C3E50)],
+            colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -51,31 +122,23 @@ class _FirstScreenState extends State<FirstScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Hero(
-                  tag: "logo",
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
-                    child: Image.asset(
-                      './android/assets/image/loadingScreen.jpeg',
-                      width: 220,
-                      height: 220,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 40),
-                SpinKitWave(
-                  color: Colors.pinkAccent.shade200,
-                  size: 60.0,
-                ),
+                SpinKitPulse(color: Colors.pinkAccent, size: 80.0),
                 const SizedBox(height: 25),
                 Text(
                   "Loading Your Anime App...",
                   style: TextStyle(
                     fontSize: 22,
-                    color: Colors.pinkAccent.shade100,
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.5,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 12,
+                        color: Colors.pinkAccent.withOpacity(0.8),
+                        offset: const Offset(0, 0),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -87,6 +150,7 @@ class _FirstScreenState extends State<FirstScreen> {
   }
 }
 
+// ================= Toast & Alert =================
 void _showToast(BuildContext context, String msg) {
   Fluttertoast.showToast(
     msg: msg,
@@ -116,7 +180,7 @@ void _showAlertDialog(BuildContext context, String title, String msg) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        backgroundColor: Colors.blueGrey.shade900,
+        backgroundColor: Colors.deepPurple.shade800.withOpacity(0.9),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           title,
@@ -136,7 +200,7 @@ void _showAlertDialog(BuildContext context, String title, String msg) {
               ),
             ),
             onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
+            child: const Text("OK", style: TextStyle(color: Colors.white)),
           ),
         ],
       );
@@ -144,6 +208,7 @@ void _showAlertDialog(BuildContext context, String title, String msg) {
   );
 }
 
+// ================= Second Screen =================
 class SecondScreen extends StatefulWidget {
   const SecondScreen({super.key});
 
@@ -160,7 +225,7 @@ class _SecondScreenState extends State<SecondScreen> {
   final TextEditingController scoreController = TextEditingController();
   final TextEditingController imageUrlController = TextEditingController();
 
-  // ✅ ฟังก์ชันเพิ่ม/แก้ไข Anime
+  // ================= Add/Edit/Delete Dialog =================
   void openAnimeBox(String? animeID) async {
     if (animeID != null) {
       final anime = await firestoreService.getAnimeById(animeID);
@@ -188,7 +253,7 @@ class _SecondScreenState extends State<SecondScreen> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.deepPurple.shade900.withOpacity(0.8),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.pinkAccent.withOpacity(0.5)),
               ),
@@ -197,11 +262,19 @@ class _SecondScreenState extends State<SecondScreen> {
                   children: [
                     _buildTextField("Anime Name", nameController),
                     const SizedBox(height: 10),
-                    _buildTextField("Chapter", chapterController, isNumber: true),
+                    _buildTextField(
+                      "Chapter",
+                      chapterController,
+                      isNumber: true,
+                    ),
                     const SizedBox(height: 10),
                     _buildTextField("Season", seasonController, isNumber: true),
                     const SizedBox(height: 10),
-                    _buildTextField("Score (0.00-5.00)", scoreController, isNumber: true),
+                    _buildTextField(
+                      "Score (0.00-5.00)",
+                      scoreController,
+                      isNumber: true,
+                    ),
                     const SizedBox(height: 10),
                     _buildTextField("Image URL", imageUrlController),
                     const SizedBox(height: 20),
@@ -212,38 +285,98 @@ class _SecondScreenState extends State<SecondScreen> {
                           onPressed: () => Navigator.pop(context),
                           child: const Text("Cancel"),
                         ),
+
+                        if (animeID != null)
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                            ),
+                            onPressed: () async {
+                              bool confirm = await showDialog(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: const Text("Confirm Delete"),
+                                  content: const Text(
+                                    "Are you sure you want to delete this anime?",
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: const Text("No"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      child: const Text("Yes"),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm) {
+                                await firestoreService.deleteAnime(animeID);
+                                Navigator.pop(context);
+                                Fluttertoast.showToast(
+                                  msg: "Anime deleted",
+                                  backgroundColor: Colors.black87,
+                                  textColor: Colors.pinkAccent,
+                                );
+                              }
+                            },
+                            child: const Text(
+                              "Delete",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.pinkAccent,
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             if (nameController.text.isEmpty ||
                                 chapterController.text.isEmpty ||
                                 seasonController.text.isEmpty ||
                                 scoreController.text.isEmpty ||
                                 imageUrlController.text.isEmpty) {
-                              _showToast(context, "Please fill all fields!");
+                              Fluttertoast.showToast(
+                                msg: "Please fill all fields",
+                                backgroundColor: Colors.black87,
+                                textColor: Colors.pinkAccent,
+                              );
                               return;
                             }
 
-                            double? score = double.tryParse(scoreController.text);
+                            double? score = double.tryParse(
+                              scoreController.text,
+                            );
                             if (score == null || score < 0 || score > 5) {
-                              _showToast(context, "Score must be between 0-5");
+                              Fluttertoast.showToast(
+                                msg: "Score must be 0-5",
+                                backgroundColor: Colors.black87,
+                                textColor: Colors.pinkAccent,
+                              );
                               return;
                             }
 
                             final String name = nameController.text;
-                            final int chapter = int.tryParse(chapterController.text) ?? 0;
-                            final int season = int.tryParse(seasonController.text) ?? 0;
+                            final int chapter =
+                                int.tryParse(chapterController.text) ?? 0;
+                            final int season =
+                                int.tryParse(seasonController.text) ?? 0;
                             final String imageUrl = imageUrlController.text;
 
                             if (!imageUrl.startsWith("http")) {
-                              _showToast(context, "Image URL must start with http");
+                              Fluttertoast.showToast(
+                                msg: "Image URL must start with http",
+                                backgroundColor: Colors.black87,
+                                textColor: Colors.pinkAccent,
+                              );
                               return;
                             }
 
                             if (animeID != null) {
-                              firestoreService.updateAnime(
+                              await firestoreService.updateAnime(
                                 animeID: animeID,
                                 animeName: name,
                                 animeChapter: chapter,
@@ -252,7 +385,7 @@ class _SecondScreenState extends State<SecondScreen> {
                                 animeImageUrl: imageUrl,
                               );
                             } else {
-                              firestoreService.addAnime(
+                              await firestoreService.addAnime(
                                 animeName: name,
                                 animeChapter: chapter,
                                 animeSeason: season,
@@ -260,12 +393,21 @@ class _SecondScreenState extends State<SecondScreen> {
                                 animeImageUrl: imageUrl,
                               );
                             }
+
                             Navigator.pop(context);
+                            Fluttertoast.showToast(
+                              msg: "Saved Successfully!",
+                              backgroundColor: Colors.black87,
+                              textColor: Colors.pinkAccent,
+                            );
                           },
-                          child: const Text("Save"),
+                          child: const Text(
+                            "Save",
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -289,7 +431,7 @@ class _SecondScreenState extends State<SecondScreen> {
         labelText: label,
         labelStyle: const TextStyle(color: Colors.pinkAccent),
         filled: true,
-        fillColor: Colors.blueGrey.shade800.withOpacity(0.4),
+        fillColor: Colors.deepPurple.shade800.withOpacity(0.5),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
@@ -298,25 +440,32 @@ class _SecondScreenState extends State<SecondScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1D1E33),
+      backgroundColor: const Color(0xFF0F2027),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(
           "🌸 Anime List",
           style: TextStyle(
-            fontSize: 26,
+            fontSize: 28,
             fontWeight: FontWeight.bold,
             color: Colors.white,
+            shadows: [
+              Shadow(
+                blurRadius: 12,
+                color: Colors.pinkAccent,
+                offset: Offset(0, 0),
+              ),
+            ],
           ),
         ),
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: Colors.pinkAccent.shade200,
         onPressed: () => openAnimeBox(null),
-        icon: const Icon(Icons.add),
-        label: const Text("Add Anime"),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text("Add Anime", style: TextStyle(color: Colors.white)),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: firestoreService.getAnimes(),
@@ -333,12 +482,12 @@ class _SecondScreenState extends State<SecondScreen> {
             }
 
             return GridView.builder(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.75,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                childAspectRatio: 0.72,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
               ),
               itemCount: animeList.length,
               itemBuilder: (context, index) {
@@ -350,38 +499,41 @@ class _SecondScreenState extends State<SecondScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF2C3E50), Color(0xFF34495E)],
+                        colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(22),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 6),
+                          color: Colors.black.withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: Offset(0, 6),
                         ),
                       ],
                     ),
                     child: Column(
                       children: [
                         Expanded(
-                          child: Hero(
-                            tag: anime.id,
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(20),
-                              ),
-                              child: Image.network(
-                                animeData['animeImageUrl'],
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(22),
+                            ),
+                            child: Image.network(
+                              animeData['animeImageUrl'],
+                              width: double.infinity,
+                              fit: BoxFit.cover,
                             ),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.4),
+                            borderRadius: const BorderRadius.vertical(
+                              bottom: Radius.circular(22),
+                            ),
+                          ),
                           child: Column(
                             children: [
                               Text(
@@ -389,30 +541,38 @@ class _SecondScreenState extends State<SecondScreen> {
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
+                                  fontSize: 14,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 5),
+                              const SizedBox(height: 6),
                               Text(
                                 "S${animeData['animeSeason']} | Ep ${animeData['animeChapter']}",
                                 style: const TextStyle(
-                                    color: Colors.white70, fontSize: 12),
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
                               ),
-                              const SizedBox(height: 5),
+                              const SizedBox(height: 6),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.star,
-                                      color: Colors.amber, size: 16),
+                                  const Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     animeData['animeScore'].toString(),
                                     style: const TextStyle(
-                                        color: Colors.white70, fontSize: 12),
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),

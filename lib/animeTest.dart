@@ -4,6 +4,24 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+void main() {
+  runApp(const MyApp());
+}
+
+/// ✅ App หลัก
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: const FirstScreen(),
+    );
+  }
+}
+
+/// ✅ FirstScreen
 class FirstScreen extends StatefulWidget {
   const FirstScreen({super.key});
 
@@ -77,7 +95,7 @@ class _FirstScreenState extends State<FirstScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     child: Image.asset(
-                      'assets/image/loadingScreen.jpeg',
+                      'assets/image/kasem.png',
                       width: 220,
                       height: 220,
                       fit: BoxFit.cover,
@@ -87,10 +105,7 @@ class _FirstScreenState extends State<FirstScreen> {
                 const SizedBox(height: 40),
 
                 // ✅ Spin animation สีชมพู
-                const SpinKitFadingCircle(
-                  color: Colors.pinkAccent,
-                  size: 60.0,
-                ),
+                const SpinKitFadingCircle(color: Colors.pinkAccent, size: 60.0),
                 const SizedBox(height: 25),
 
                 // ✅ ข้อความ Welcome
@@ -202,10 +217,7 @@ class SecondScreen extends StatelessWidget {
         // Gradient background สีม่วง-ชมพู
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xFF4A00E0),
-              Color(0xFFF48FB1),
-            ],
+            colors: [Color(0xFF4A00E0), Color(0xFFF48FB1)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -215,7 +227,11 @@ class SecondScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.star, size: 100, color: Colors.white.withOpacity(0.9)),
+                Icon(
+                  Icons.star,
+                  size: 100,
+                  color: Colors.white.withOpacity(0.9),
+                ),
                 const SizedBox(height: 30),
                 Text(
                   'Welcome to the Second Screen!',

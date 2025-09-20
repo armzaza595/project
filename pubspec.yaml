@@ -68,10 +68,10 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true # icon บน iOS แนวตั้ง
   Remove_alpha.ios: true # icon โปร่งใส บน iOS
-  image_path: "./android/assets/icon/icon_app.jpeg"
+  image_path: "./android/assets/icon/icon_app.png" # นำภาพเข้าโปรเจค
   min_skd_android: 28 # min is 16, default is 21
   adaptive_icon_background: "#FFFFFF" # สีพื้นหลัง icon บน Android
-  adaptive_icon_foreground: "./android/assets/image/loadingScreen.jpeg" # ให้ icon เป็นรูปภาพ
+  adaptive_icon_foreground: "./android/assets/image/kasem.png" # ให้ icon เป็นรูปภาพ
   # หลังจากนำภาพเข้าโปรเจค ให้ใช้คำสั่ง dart run flutter_launcher_icons
 
 # For information on the generic Dart part of this file, see the
@@ -92,7 +92,7 @@ flutter:
   # Step 2: Install loading app screen
   assets:
     - ./android/assets/image/ # show all
-    - ./android/assets/image/loadingScreen.jpeg # show specific
+    - ./android/assets/image/kasem.png # show specific
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

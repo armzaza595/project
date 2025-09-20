@@ -7,13 +7,28 @@ import 'package:project/first_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-// Step 4: Connect to Firebase
-
-void main() async {
+Future<void> main() async {
+  // ✅ ให้ Flutter ทำงานกับ async ก่อน runApp
   WidgetsFlutterBinding.ensureInitialized();
+
+  // ✅ Initial Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(
-    // Step 6: Firestore CRUD operation
-    const MaterialApp(home: FirstScreen(), debugShowCheckedModeBanner: false),
-  );
+
+  // ✅ Run app
+  runApp(const MyApp());
+}
+
+/// ✅ ตัวหลักของแอป
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: "Anime Rating App",
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primarySwatch: Colors.pink, fontFamily: "Roboto"),
+      home: const FirstScreen(), // ✅ หน้าแรก
+    );
+  }
 }
