@@ -1,9 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-<uses-permission android:name="android.permission.INTERNET"/>
-<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- Step 3: Check internet connection -->
+    <uses-permission android:name="android.permission.INTERNET"/> <!-- Cellular -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/> <!-- Wi-Fi -->
 
-
+    <!-- Step 1: Changed project name -->
     <application
         android:label="My Bro"
         android:name="${applicationName}"
